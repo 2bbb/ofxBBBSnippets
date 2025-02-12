@@ -1,0 +1,3 @@
+[submodule "libs/bbb-snippets"]
+	path = libs/bbb-snippets
+	url = git@github.com:2bbb/bbb-snippets.git
