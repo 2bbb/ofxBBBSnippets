@@ -225,8 +225,7 @@ namespace ofx {
                         if(word.size() <= settings.num_fold) {
                             current = word;
                         } else {
-                            for(std::size_t j = 0; j < word.size(); j += settings.num_fold)
-                            {
+                            for(std::size_t j = 0; j < word.size(); j += settings.num_fold) {
                                 lines.push_back(word.substr(j, settings.num_fold));
                             }
                             current = "";
@@ -238,7 +237,7 @@ namespace ofx {
             for(std::size_t i = 1; i < lines.size(); ++i) {
                 if(!lines[i].empty() && (lines[i][0] == '.' || lines[i][0] == ',' || lines[i][0] == '-')) {
                     char c = lines[i][0];
-                    lines[i].erase(0,1);
+                    lines[i].erase(0, 1);
                     lines[i - 1] += c;
                 }
             }
