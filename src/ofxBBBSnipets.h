@@ -9,6 +9,8 @@
 #include "ofxCrossFade.h"
 #include "ofxSwitchExecutor.h"
 #include "ofxBitmapConsole.h"
+#include "ofxPingPongFbo.h"
+#include "ofxAlertError.h"
 
 #include <bbb/snippets.hpp>
 
