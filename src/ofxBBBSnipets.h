@@ -11,6 +11,7 @@
 #include "ofxBitmapConsole.h"
 #include "ofxPingPongFbo.h"
 #include "ofxAlertError.h"
+#include "ofxGLFWUtils.h"
 
 #include <bbb/snippets.hpp>
 
