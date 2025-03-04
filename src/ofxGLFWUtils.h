@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <functional>
 
 namespace ofx {
     namespace GLFWUtils {
@@ -28,8 +29,23 @@ namespace ofx {
         bool isWindowFloating();
         bool setWindowFloating(bool floating);
 
+        bool isWindowDecorated();
+        bool setWindowDecorated(bool decorated);
+
+        bool isWindowCenterCursor();
+        bool setWindowCenterCursor(bool center_cursor);
+        bool showCursor();
+        bool hideCursor();
+        bool disableCursor();
+
+        bool isWindowMousePassthrough();
+        bool setWindowMousePassthrough(bool passthrough);
+        
         float getWindowOpacity(float opacity);
         bool setWindowOpacity(float opacity);
+        
+        bool setWindowSizeLimits(int minWidth, int minHeight, int maxWidth, int maxHeight);
+        bool setWindowAspectRatio(int width, int height);
         
         //
         

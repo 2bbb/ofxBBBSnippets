@@ -12,115 +12,120 @@
 
 #include "GLFW/glfw3.h"
 
+#include <string>
+#include <tuple>
+#include <map>
+
 namespace ofx{
     namespace GLFWUtils {
-        bool minimizeWindow() {
+        std::pair<bool, std::string> glfwErrorCheck(const std::string &tag) {
+            const char *error_str = nullptr;
+            auto error_code = glfwGetError(&error_str);
+            switch(error_code) {
+                case GLFW_NO_ERROR:
+                    return { true, "" };
+                case GLFW_NOT_INITIALIZED:
+                    ofLogError(tag) << "GLFW_NOT_INITIALIZED: " << error_str;
+                    return { false, error_str };
+                case GLFW_INVALID_VALUE:
+                    ofLogError(tag) << "GLFW_INVALID_VALUE: " << error_str;
+                    return { false, error_str };
+                case GLFW_PLATFORM_ERROR:
+                    ofLogError(tag) << "GLFW_PLATFORM_ERROR: " << error_str;
+                    return { false, error_str };
+                default:
+                    ofLogError(tag) << "error: " << error_str;
+                    return { false, error_str };
+            }
+        }
+        
+        
+        template <typename Function, typename ... Arguments>
+        bool callGLFWFunction(const std::string &tag,
+                              Function fun,
+                              Arguments && ... args)
+        {
             auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
             if(of_glfw_win_ptr) {
                 auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwIconifyWindow(glfw_win_ptr);
+                fun(glfw_win_ptr, std::forward<Arguments>(args) ...);
                 return true;
             } else {
-                ofLogWarning("ofxGLFWUtils::minimizeWindow()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
+                ofLogWarning(tag) << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
                 return false;
             }
+        }
+        
+        bool callGLFWGetBoolFunction(const std::string &tag,
+                                     int attribute)
+        {
+            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
+            if(of_glfw_win_ptr) {
+                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
+                int result = glfwGetWindowAttrib(glfw_win_ptr, attribute);
+                return result == GLFW_TRUE;
+            } else {
+                ofLogWarning(tag) << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found. always returns false regardless of whether it is iconified or not.";
+                return false;
+            }
+        }
+        
+        bool callGLFWSetBoolFunction(const std::string &tag,
+                                     int attribute,
+                                     bool value)
+        {
+            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
+            if(of_glfw_win_ptr) {
+                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
+                glfwSetWindowAttrib(glfw_win_ptr,
+                                    attribute,
+                                    value ? GLFW_TRUE : GLFW_FALSE);
+                return true;
+            } else {
+                ofLogWarning(tag) << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found.";
+                return false;
+            }
+        }
+
+        bool minimizeWindow() {
+            return callGLFWFunction("ofxGLFWUtils::minimizeWindow()", glfwIconifyWindow);
         }
         
         bool maximizeWindow() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwMaximizeWindow(glfw_win_ptr);
-                return true;
-            } else {
-                ofLogWarning("ofxGLFWUtils::maximizeWindow()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
-                return false;
-            }
+            return callGLFWFunction("ofxGLFWUtils::maximizeWindow()", glfwMaximizeWindow);
         }
         
         bool restoreWindow() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwRestoreWindow(glfw_win_ptr);
-                return true;
-            } else {
-                ofLogWarning("ofxGLFWUtils::restoreWindow()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
-                return false;
-            }
+            return callGLFWFunction("ofxGLFWUtils::restoreWindow()", glfwRestoreWindow);
         }
         
         bool showWindow() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwShowWindow(glfw_win_ptr);
-                return true;
-            } else {
-                ofLogWarning("ofxGLFWUtils::showWindow()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
-                return false;
-            }
+            return callGLFWFunction("ofxGLFWUtils::showWindow()", glfwShowWindow);
         }
         
         bool hideWindow() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwHideWindow(glfw_win_ptr);
-                return true;
-            } else {
-                ofLogWarning("ofxGLFWUtils::hideWindow()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
-                return false;
-            }
+            return callGLFWFunction("ofxGLFWUtils::hideWindow()", glfwHideWindow);
         }
         
         bool focusWindow() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwFocusWindow(glfw_win_ptr);
-                return true;
-            } else {
-                ofLogWarning("ofxGLFWUtils::focusWindow()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found";
-                return false;
-            }
+            return callGLFWFunction("ofxGLFWUtils::focusWindow()", glfwFocusWindow);
         }
         
         bool isWindowIconified() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                int iconified = glfwGetWindowAttrib(glfw_win_ptr, GLFW_ICONIFIED);
-                return iconified == GLFW_TRUE;
-            } else {
-                ofLogWarning("ofxGLFWUtils::isWindowIconified()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found. always returns false regardless of whether it is iconified or not.";
-                return false;
-            }
+            return callGLFWGetBoolFunction("ofxGLFWUtils::isWindowIconified()",
+                                           GLFW_ICONIFIED);
         }
         
         bool isWindowFocused() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                int focused = glfwGetWindowAttrib(glfw_win_ptr, GLFW_FOCUSED);
-                return focused == GLFW_TRUE;
-            } else {
-                ofLogWarning("ofxGLFWUtils::isWindowFocused()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found. always returns false regardless of whether it is iconified or not.";
-                return false;
-            }
+            return callGLFWGetBoolFunction("ofxGLFWUtils::isWindowFocused()",
+                                           GLFW_FOCUSED);
         }
         
         bool isWindowFloating() {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                int floating = glfwGetWindowAttrib(glfw_win_ptr, GLFW_FLOATING);
-                return floating == GLFW_TRUE;
-            } else {
-                ofLogWarning("ofxGLFWUtils::isWindowFloating()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found. always returns false regardless of whether it is iconified or not.";
-                return false;
-            }
+            return callGLFWGetBoolFunction("ofxGLFWUtils::isWindowFloating()",
+                                           GLFW_FLOATING);
         }
+        
         bool setWindowFloating(bool floating) {
             auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
             if(of_glfw_win_ptr) {
@@ -135,6 +140,70 @@ namespace ofx{
             }
         }
         
+        bool isWindowDecorated() {
+            return callGLFWGetBoolFunction("ofxGLFWUtils::isWindowDecorated()",
+                                           GLFW_DECORATED);
+        }
+        
+        bool setWindowDecorated(bool decorated) {
+            return callGLFWSetBoolFunction("ofxGLFWUtils::setWindowDecorated()",
+                                           GLFW_DECORATED,
+                                           decorated);
+        }
+
+        bool isWindowCenterCursor() {
+            return callGLFWGetBoolFunction("ofxGLFWUtils::isWindowCenterCursor()",
+                                           GLFW_CENTER_CURSOR);
+        }
+        
+        bool setWindowCenterCursor(bool center_cursor) {
+            return callGLFWSetBoolFunction("ofxGLFWUtils::setWindowCenterCursor()",
+                                           GLFW_CENTER_CURSOR,
+                                           center_cursor);
+        }
+
+        bool showCursor() {
+            return callGLFWFunction("ofxGLFWUtils::showCursor()",
+                                    glfwSetInputMode,
+                                    GLFW_CURSOR,
+                                    GLFW_CURSOR_NORMAL);
+        }
+        bool hideCursor() {
+            return callGLFWFunction("ofxGLFWUtils::hideCursor()",
+                                    glfwSetInputMode,
+                                    GLFW_CURSOR,
+                                    GLFW_CURSOR_HIDDEN);
+        }
+        bool disableCursor() {
+            return callGLFWFunction("ofxGLFWUtils::disableCursor()",
+                                    glfwSetInputMode,
+                                    GLFW_CURSOR,
+                                    GLFW_CURSOR_DISABLED);
+        }
+
+#if (3 < GLFW_VERSION_MAJOR) || ((GLFW_VERSION_MAJOR == 3) && (3 < GLFW_VERSION_MINOR))
+        bool isWindowMousePassthrough() {
+            return callGLFWGetBoolFunction("ofxGLFWUtils::isWindowMousePassthrough()",
+                                           GLFW_MOUSE_PASSTHROUGH);
+        }
+        
+        bool setWindowMousePassthrough(bool passthrough) {
+            return callGLFWSetBoolFunction("ofxGLFWUtils::setWindowMousePassthrough()",
+                                           GLFW_MOUSE_PASSTHROUGH,
+                                           passthrough);
+        }
+#else
+        bool isWindowMousePassthrough() {
+            ofLogError("ofxGLFWUtils::isWindowMousePassthrough()") << "GLFW 3.4+ required";
+            return false;
+        }
+        
+        bool setWindowMousePassthrough(bool passthrough) {
+            ofLogError("ofxGLFWUtils::setWindowMousePassthrough()") << "GLFW 3.4+ required";
+            return false;
+        }
+#endif
+        
         float getWindowOpacity(float opacity) {
             auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
             if(of_glfw_win_ptr) {
@@ -146,19 +215,32 @@ namespace ofx{
                 return -1.0f;
             }
         }
+        
         bool setWindowOpacity(float opacity) {
-            auto of_glfw_win_ptr = dynamic_cast<ofAppGLFWWindow *>(ofGetWindowPtr());
-            if(of_glfw_win_ptr) {
-                auto glfw_win_ptr = of_glfw_win_ptr->getGLFWWindow();
-                glfwSetWindowOpacity(glfw_win_ptr, opacity);
-                return true;
-            } else {
-                ofLogWarning("ofxGLFWUtils::setWindowOpacity()") << "window pointer (= ofGetWindowPtr()) can not be cast to ofAppGLFWWindow not found.";
-                return false;
-            }
+            return callGLFWFunction("ofxGLFWUtils::setWindowOpacity()",
+                                    glfwSetWindowOpacity,
+                                    opacity);
         }
 
+        bool setWindowSizeLimits(int minWidth, int minHeight, int maxWidth, int maxHeight) {
+            return callGLFWFunction("ofxGLFWUtils::setWindowSizeLimits()",
+                                    glfwSetWindowSizeLimits,
+                                    minWidth <= 0 ? GLFW_DONT_CARE : minWidth,
+                                    minHeight <= 0 ? GLFW_DONT_CARE : minHeight,
+                                    maxWidth <= 0 ? GLFW_DONT_CARE : maxWidth,
+                                    maxHeight <= 0 ? GLFW_DONT_CARE : maxHeight);
+        }
         
+        bool setWindowAspectRatio(int width, int height) {
+            if(width <= 0 || height <= 0) {
+                width = GLFW_DONT_CARE;
+                height = GLFW_DONT_CARE;
+            }
+            return callGLFWFunction("ofxGLFWUtils::setWindowSizeLimits()",
+                                    glfwSetWindowAspectRatio,
+                                    width, height);
+        }
+
         // monitor
         
         bool Monitor::setGamma(float gamma) {
@@ -168,26 +250,14 @@ namespace ofx{
             }
             
             GLFWmonitor *monitor = (GLFWmonitor *)ptr;
+            if(monitor == nullptr) {
+                ofLogError("ofxGLFWUtils::Monitor::setGammaRamp()") << "failed to get GLFWmonitor pointer";
+                return false;
+            }
             glfwSetGamma(monitor, gamma);
             
-            const char *error_str = nullptr;
-            auto error_code = glfwGetError(&error_str);
-            switch(error_code) {
-                case GLFW_NO_ERROR:
-                    return true;
-                case GLFW_NOT_INITIALIZED:
-                    ofLogError("ofxGLFWUtils::Monitor::setGamma()") << "GLFW_NOT_INITIALIZED: " << error_str;
-                    return false;
-                case GLFW_INVALID_VALUE:
-                    ofLogError("ofxGLFWUtils::Monitor::setGamma()") << "GLFW_INVALID_VALUE: " << error_str;
-                    return false;
-                case GLFW_PLATFORM_ERROR:
-                    ofLogError("ofxGLFWUtils::Monitor::setGamma()") << "GLFW_PLATFORM_ERROR: " << error_str;
-                    return false;
-                default:
-                    ofLogError("ofxGLFWUtils::Monitor::setGamma()") << "unknown error: " << error_str;
-                    return false;
-            }
+            auto result = glfwErrorCheck("ofxGLFWUtils::Monitor::setGamma()");
+            return result.first;
         }
         
         bool Monitor::setGammaRamp(const GammaRamp &gamma_ramp) {
@@ -207,8 +277,21 @@ namespace ofx{
             red.resize(ramp.size);
             green.resize(ramp.size);
             blue.resize(ramp.size);
+            ramp.red = red.data();
+            ramp.green = green.data();
+            ramp.blue = blue.data();
             
-            GLFWmonitor *monitor = (GLFWmonitor *)ptr;
+            for(auto i = 0; i < ramp.size; ++i) {
+                ramp.red[i] = gamma_ramp[i].r;
+                ramp.green[i] = gamma_ramp[i].g;
+                ramp.blue[i] = gamma_ramp[i].b;
+            }
+            
+            GLFWmonitor *monitor = static_cast<GLFWmonitor *>(ptr);
+            if(monitor == nullptr) {
+                ofLogError("ofxGLFWUtils::Monitor::setGammaRamp()") << "failed to get GLFWmonitor pointer";
+                return false;
+            }
             glfwSetGammaRamp(monitor, &ramp);
             
             const char *error_str = nullptr;
